@@ -279,7 +279,8 @@ class MistralForCausalLM(nn.Module):
         self.model = MistralModel(config,
                                   linear_method,
                                   lora_config=lora_config)
-        unpadded_vocab_size = config.vocab_size
+        orignal_unpadded_vocab_size = unpadded_vocab_size = min(config.vocab_size, len(self.tokenizer))
+      
         if lora_config:
             unpadded_vocab_size += lora_config.lora_extra_vocab_size
         self.lm_head = ParallelLMHead(
@@ -291,7 +292,7 @@ class MistralForCausalLM(nn.Module):
             # compatibility
             if not lora_config else lora_config.lora_vocab_padding_size,
         )
-        self.sampler = Sampler(unpadded_vocab_size, config.vocab_size)
+        self.sampler = Sampler(unpadded_vocab_size, orignal_unpadded_vocab_size)
 
     def forward(
         self,
